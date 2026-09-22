@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureExam — Student Portal</title>
+  <link rel="stylesheet" href="/static/css/main.css"/>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-glow: rgba(37,99,235,0.3);
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --success: #238636;
+      --error: #da3633;
+      --warning: #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37,99,235,0.15), transparent);
+      pointer-events: none;
+    }
+
+    .portal {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 12px;
+      box-shadow: 0 0 32px var(--accent-glow);
+    }
+    .logo h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+    .logo p  { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    /* Steps indicator */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+    .step.active .step-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .step.done .step-dot {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    .step-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .step.active .step-label { color: var(--accent); }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 8px;
+      margin-bottom: 22px;
+      min-width: 32px;
+      transition: background 0.3s;
+    }
+    .step-line.done { background: var(--success); }
+
+    /* Step panels */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .panel-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Form elements */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .field select option { background: var(--surface2); }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 16px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-top: 10px;
+    }
+    .btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* Module cards */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .module-card {
+      padding: 14px;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .module-card:hover { border-color: var(--accent); background: rgba(37,99,235,0.08); }
+    .module-card.selected {
+      border-color: var(--accent);
+      background: rgba(37,99,235,0.15);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .module-card .mod-icon { font-size: 1.6rem; margin-bottom: 6px; }
+    .module-card .mod-name { font-size: 0.8rem; font-weight: 600; }
+    .module-card .mod-code { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Camera */
+    .camera-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 16px;
+      aspect-ratio: 4/3;
+    }
+    #video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+    .camera-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .face-guide {
+      width: 55%;
+      aspect-ratio: 3/4;
+      border: 2px dashed rgba(37,99,235,0.6);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+    }
+    .photo-strip {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .photo-slot {
+      flex: 1;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 2px dashed var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .photo-slot.captured { border-color: var(--success); border-style: solid; }
+    .photo-slot img { width:100%; height:100%; object-fit:cover; }
+    .photo-count {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* Alert */
+    .alert {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert.error   { background: rgba(218,54,51,0.15); border: 1px solid rgba(218,54,51,0.4); color: #f85149; display: block; }
+    .alert.success { background: rgba(35,134,54,0.15); border: 1px solid rgba(35,134,54,0.4); color: #3fb950; display: block; }
+    .alert.info    { background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.4); color: #79b8ff; display: block; }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="portal">
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <h1>SecureExam</h1>
+    <p>AI-Powered Proctored Examination Portal</p>
+  </div>
+
+  <div class="card">
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step active" id="s1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Login</div>
+      </div>
+      <div class="step-line" id="line1"></div>
+      <div class="step" id="s2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Select Exam</div>
+      </div>
+      <div class="step-line" id="line2"></div>
+      <div class="step" id="s3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Face Capture</div>
+      </div>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- STEP 1: Login -->
+    <div class="panel active" id="panel1">
+      <div class="panel-title">Student Login</div>
+      <div class="panel-sub">Enter your credentials to access your exam</div>
+      <div class="field">
+        <label>Student ID</label>
+        <input type="text" id="sid" placeholder="e.g. BUE-21-001" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="spw" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">
+        <span id="loginSpinner" class="spinner"></span>
+        <span id="loginText">Continue →</span>
+      </button>
+    </div>
+
+    <!-- STEP 2: Module selection -->
+    <div class="panel" id="panel2">
+      <div class="panel-title">Select Your Exam Module</div>
+      <div class="panel-sub">Choose the module you are sitting today</div>
+      <div class="modules-grid">
+        <div class="module-card" onclick="selectModule(this,'Software Engineering')" data-module="Software Engineering">
+          <div class="mod-icon">💻</div>
+          <div class="mod-name">Software Engineering</div>
+          <div class="mod-code">CS-401</div>
+        </div>
+        <div class="module-card" onclick="selectModule(this,'Data Structures')" data-module="Data Structures">
+          <div class="mod-icon">🌲</div>
+          <div class="mod-name">Data Structures</div>
+          <div class="mod-code">CS-301</div>
+        </div>
+        <div class="module-card" onclick="selectModule(this,'Algorithms')" data-module="Algorithms">
+          <div class="mod-icon">🔢</div>
+          <div class="mod-name">Algorithms</div>
+          <div class="mod-code">CS-302</div>
+        </div>
+        <div class="module-card" onclick="selectModule(this,'Database Systems')" data-module="Database Systems">
+          <div class="mod-icon">🗄️</div>
+          <div class="mod-name">Database Systems</div>
+          <div class="mod-code">CS-303</div>
+        </div>
+        <div class="module-card" onclick="selectModule(this,'Computer Networks')" data-module="Computer Networks">
+          <div class="mod-icon">🌐</div>
+          <div class="mod-name">Computer Networks</div>
+          <div class="mod-code">CS-404</div>
+        </div>
+        <div class="module-card" onclick="selectModule(this,'AI & Machine Learning')" data-module="AI & Machine Learning">
+          <div class="mod-icon">🤖</div>
+          <div class="mod-name">AI & Machine Learning</div>
+          <div class="mod-code">CS-405</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="moduleBtn" onclick="goToCapture()" disabled>
+        Proceed to Face Capture →
+      </button>
+      <button class="btn btn-outline" onclick="goBack(1)">← Back</button>
+    </div>
+
+    <!-- STEP 3: Face capture -->
+    <div class="panel" id="panel3">
+      <div class="panel-title">Face Enrollment</div>
+      <div class="panel-sub">We need 3 clear photos of your face for identity verification</div>
+
+      <div class="camera-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="camera-overlay">
+          <div class="face-guide"></div>
+        </div>
+      </div>
+
+      <div class="photo-strip">
+        <div class="photo-slot" id="slot0">📷</div>
+        <div class="photo-slot" id="slot1">📷</div>
+        <div class="photo-slot" id="slot2">📷</div>
+      </div>
+      <div class="photo-count" id="photoCount">0 of 3 photos taken</div>
+
+      <button class="btn btn-primary" id="captureBtn" onclick="capturePhoto()">
+        <span id="captureSpinner" class="spinner"></span>
+        <span id="captureText">📸 Take Photo</span>
+      </button>
+      <button class="btn btn-outline" onclick="goBack(2)">← Back</button>
+    </div>
+
+  </div><!-- card -->
+</div><!-- portal -->
+
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+  let token = localStorage.getItem('se_token') || null;
+  let photosTaken = 0;
+  let selectedModule = null;
+  let stream = null;
+
+  // ── Helpers ─────────────────────────────────────────────
+  function showAlert(msg, type='error') {
+    const el = document.getElementById('alertBox');
+    el.className = 'alert ' + type;
+    el.textContent = msg;
+    setTimeout(() => { el.className = 'alert'; }, 5000);
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      document.getElementById('panel'+i).classList.toggle('active', i===n);
+      const s = document.getElementById('s'+i);
+      s.classList.remove('active','done');
+      if (i < n)  s.classList.add('done');
+      if (i === n) s.classList.add('active');
+    });
+    [1,2].forEach(i => {
+      document.getElementById('line'+i).classList.toggle('done', i < n);
+    });
+  }
+
+  function goBack(step) {
+    if (step === 2 && stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    setStep(step);
+  }
+
+  // ── Step 1: Login ────────────────────────────────────────
+  async function doLogin() {
+    const sid = document.getElementById('sid').value.trim();
+    const pw  = document.getElementById('spw').value;
+    if (!sid || !pw) { showAlert('Please enter your Student ID and password.'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    document.getElementById('loginSpinner').style.display = 'block';
+    document.getElementById('loginText').textContent = 'Logging in…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: sid, password: pw })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.message || 'Login failed.'); return; }
+      token = data.token;
+      localStorage.setItem('se_token', token);
+      setStep(2);
+    } catch(e) {
+      showAlert('Network error. Is the server running?');
+    } finally {
+      document.getElementById('loginSpinner').style.display = 'none';
+      document.getElementById('loginText').textContent = 'Continue →';
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('spw').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // ── Step 2: Module selection ─────────────────────────────
+  function selectModule(el, name) {
+    document.querySelectorAll('.module-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedModule = name;
+    document.getElementById('moduleBtn').disabled = false;
+  }
+
+  function goToCapture() {
+    if (!selectedModule) { showAlert('Please select an exam module.'); return; }
+    setStep(3);
+    startCamera();
+  }
+
+  // ── Step 3: Camera & capture ─────────────────────────────
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480, facingMode:'user' } });
+      document.getElementById('video').srcObject = stream;
+    } catch(e) {
+      showAlert('Camera access denied. Please allow camera permissions and try again.');
+    }
+  }
+
+  async function capturePhoto() {
+    if (photosTaken >= 3) return;
+
+    const btn = document.getElementById('captureBtn');
+    document.getElementById('captureSpinner').style.display = 'block';
+    document.getElementById('captureText').textContent = 'Processing…';
+    btn.disabled = true;
+
+    const video  = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.save(); ctx.scale(-1,1); ctx.drawImage(video, -canvas.width, 0); ctx.restore();
+    const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+    try {
+      const res = await fetch('/api/enroll/capture', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+        body: JSON.stringify({ frame: b64, index: photosTaken })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.error === 'no_face_detected') {
+          showAlert('No face detected. Ensure good lighting and look directly at the camera.', 'error');
+        } else {
+          showAlert(data.error || 'Capture failed. Try again.', 'error');
+        }
+        return;
+      }
+
+      // Show thumbnail
+      const slot = document.getElementById('slot' + photosTaken);
+      slot.innerHTML = `<img src="data:image/jpeg;base64,${b64}"/>`;
+      slot.classList.add('captured');
+      photosTaken++;
+      document.getElementById('photoCount').textContent = `${photosTaken} of 3 photos taken`;
+      showAlert(`Photo ${photosTaken} captured!`, 'success');
+
+      if (photosTaken === 3) {
+        document.getElementById('captureText').textContent = '✓ Confirming enrollment…';
+        await confirmEnrollment();
+      } else {
+        document.getElementById('captureText').textContent = `📸 Take Photo ${photosTaken+1}`;
+      }
+    } catch(e) {
+      showAlert('Network error during capture.');
+    } finally {
+      document.getElementById('captureSpinner').style.display = 'none';
+      btn.disabled = photosTaken >= 3;
+    }
+  }
+
+  async function confirmEnrollment() {
+    try {
+      const res = await fetch('/api/enroll/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(data.error || 'Enrollment confirmation failed.'); return; }
+
+      showAlert('Enrollment complete! Redirecting to waiting room…', 'success');
+      if (stream) stream.getTracks().forEach(t=>t.stop());
+      setTimeout(() => { window.location.href = '/waiting'; }, 1800);
+    } catch(e) {
+      showAlert('Network error during enrollment confirmation.');
+    }
+  }
+
+  // Auto-advance if already logged in
+  if (token) {
+    // quietly validate token — if it fails the API calls will 401 and we stay on step 1
+  }
+</script>
+</body>
+</html>

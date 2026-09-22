@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — Invigilator Dashboard</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <style>
+    :root {
+      --crit-bg: rgba(220,38,38,0.08);
+      --crit-border: rgba(220,38,38,0.35);
+      --crit-text: #f87171;
+      --warn-bg: rgba(217,119,6,0.08);
+      --warn-border: rgba(217,119,6,0.35);
+      --warn-text: #fbbf24;
+      --info-bg: rgba(37,99,235,0.08);
+      --info-border: rgba(37,99,235,0.3);
+      --info-text: #60a5fa;
+    }
+
+    /* ── Alert Log ── */
+    .alert-log { display: flex; flex-direction: column; gap: 8px; }
+
+    .alert-entry {
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border-left: 3px solid transparent;
+      background: var(--s2, #1a1f2e);
+      transition: transform 0.15s, box-shadow 0.15s;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(-8px); }
+      to   { opacity:1; transform: none; }
+    }
+    .alert-entry:hover { transform: translateX(3px); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+
+    .alert-entry.critical {
+      background: var(--crit-bg);
+      border-left-color: var(--crit-text);
+    }
+    .alert-entry.warning {
+      background: var(--warn-bg);
+      border-left-color: var(--warn-text);
+    }
+    .alert-entry.info {
+      background: var(--info-bg);
+      border-left-color: var(--info-text);
+    }
+
+    .alert-icon-wrap {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .alert-entry.critical .alert-icon-wrap { background: rgba(220,38,38,0.15); }
+    .alert-entry.warning  .alert-icon-wrap { background: rgba(217,119,6,0.15); }
+    .alert-entry.info     .alert-icon-wrap { background: rgba(37,99,235,0.15); }
+
+    .alert-body { min-width: 0; }
+    .alert-body-top {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 3px; flex-wrap: wrap;
+    }
+    .alert-type-badge {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .alert-entry.critical .alert-type-badge { background: rgba(220,38,38,0.2); color: var(--crit-text); }
+    .alert-entry.warning  .alert-type-badge { background: rgba(217,119,6,0.2);  color: var(--warn-text); }
+    .alert-entry.info     .alert-type-badge { background: rgba(37,99,235,0.2);   color: var(--info-text); }
+
+    .alert-student-name { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .alert-student-id   { font-size: 11px; color: #64748b; }
+    .alert-detail       { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+    .alert-meta {
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 6px; flex-shrink: 0;
+    }
+    .alert-time { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .alert-score {
+      font-size: 12px; font-weight: 700;
+      padding: 2px 8px; border-radius: 6px;
+    }
+    .alert-entry.critical .alert-score { background: rgba(220,38,38,0.2); color: var(--crit-text); }
+    .alert-entry.warning  .alert-score { background: rgba(217,119,6,0.2);  color: var(--warn-text); }
+    .alert-entry.info     .alert-score { background: rgba(37,99,235,0.2);  color: var(--info-text); }
+
+    .alert-reviewed-btn {
+      font-size: 10px; padding: 2px 8px;
+      background: transparent;
+      border: 1px solid #334155;
+      border-radius: 6px; color: #64748b;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .alert-reviewed-btn:hover { border-color: #60a5fa; color: #60a5fa; }
+
+    /* ── Alert panel (side slide) ── */
+    .alerts-panel-body .alert-entry { font-size: 12px; }
+
+    /* ── Filter bar ── */
+    .alert-filters {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+      align-items: center; justify-content: space-between;
+    }
+    .alert-filter-btns { display: flex; gap: 6px; }
+    .alert-filter-btn {
+      padding: 5px 14px; border-radius: 20px; font-size: 12px;
+      font-weight: 600; cursor: pointer; transition: all 0.15s;
+      border: 1px solid #334155; background: transparent; color: #94a3b8;
+    }
+    .alert-filter-btn.active.all      { border-color: #60a5fa; background: rgba(37,99,235,0.15); color: #60a5fa; }
+    .alert-filter-btn.active.critical { border-color: #f87171; background: rgba(220,38,38,0.15); color: #f87171; }
+    .alert-filter-btn.active.warning  { border-color: #fbbf24; background: rgba(217,119,6,0.15);  color: #fbbf24; }
+    .alert-filter-btn.active.info     { border-color: #60a5fa; background: rgba(37,99,235,0.15);  color: #60a5fa; }
+    .alert-filter-btn:hover:not(.active) { border-color: #475569; color: #e2e8f0; }
+
+    .alert-count-summary {
+      font-size: 12px; color: #64748b;
+    }
+    .alert-count-summary span { font-weight: 700; }
+    .alert-count-summary .c  { color: var(--crit-text); }
+    .alert-count-summary .w  { color: var(--warn-text); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 40px 20px; color: #475569;
+    }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state p { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="dash-page page-enter">
+
+  <div class="dash-topbar">
+    <div style="display:flex;align-items:center">
+      <div class="dash-topbar-brand">Secure<b>Exam</b></div>
+      <div class="dash-topbar-sub">INVIGILATOR DASHBOARD</div>
+    </div>
+    <div class="dash-topbar-right">
+      <span class="badge badge-red" id="critical-badge">● 0 Critical</span>
+      <span class="badge badge-green">● Session Active</span>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search students..."
+               oninput="Dashboard.filterStudents(this.value)">
+        <span style="color:var(--t-dark2)">🔍</span>
+      </div>
+      <div class="notif-bell" id="notification-bell"
+           onclick="Dashboard.toggleAlertsPanel()" title="View alerts">
+        🔔
+        <span class="notif-count" id="alerts-count">0</span>
+      </div>
+      <div class="dash-user">
+        <span>Dr. <strong>Noura Elmaghawry</strong></span>
+        <div class="dash-avatar">NE</div>
+      </div>
+      <button class="btn btn-ghost" id="logout-btn"
+              style="color:rgba(255,255,255,.4);font-size:12px;padding:6px 10px">
+        Sign out
+      </button>
+    </div>
+  </div>
+
+  <div class="dash-layout" style="flex:1;overflow:hidden">
+
+    <div class="dash-sidebar">
+      <div class="sidebar-section-label">Navigation</div>
+      <div class="nav-item active" data-tab="overview" onclick="Dashboard.showTab('overview')">
+        <span class="nav-icon">📊</span> Overview
+      </div>
+      <div class="nav-item" data-tab="students" onclick="Dashboard.showTab('students')">
+        <span class="nav-icon">👥</span> Students
+      </div>
+      <div class="nav-item" data-tab="alerts" onclick="Dashboard.showTab('alerts')">
+        <span class="nav-icon">🚨</span> Alerts
+        <span class="nav-badge" id="sidebar-alert-count">0</span>
+      </div>
+      <div class="nav-item" data-tab="reports" onclick="Dashboard.showTab('reports')">
+        <span class="nav-icon">📋</span> Reports
+      </div>
+      <div class="nav-item" data-tab="settings" onclick="Dashboard.showTab('settings')">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-session-label">Active session</div>
+        <div class="sidebar-session-name">SE Final Exam</div>
+        <div class="sidebar-session-time" id="session-timer">01:30:00 remaining</div>
+      </div>
+    </div>
+
+    <div class="dash-main">
+
+      <!-- OVERVIEW -->
+      <div id="tab-overview">
+        <div class="dash-header">
+          <h2>Live Overview</h2>
+          <span class="badge badge-green" id="active-badge">0 active students</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-label">Active Students</div>
+            <div class="stat-value" id="stat-active">0</div>
+            <div class="stat-sub">currently in exam</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Critical Flags</div>
+            <div class="stat-value" id="stat-critical">0</div>
+            <div class="stat-sub">require action</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Warnings</div>
+            <div class="stat-value" id="stat-warnings">0</div>
+            <div class="stat-sub">under monitoring</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Clean Sessions</div>
+            <div class="stat-value" id="stat-clean">0</div>
+            <div class="stat-sub">no issues detected</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--t3);margin-bottom:14px">
+          Click any student tile to view detail · Use Flag / Block buttons to take action
+        </p>
+        <div class="students-grid" id="ovr-grid"></div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="tab-students" style="display:none">
+        <div class="dash-header"><h2>All Students</h2></div>
+        <div class="filter-tabs">
+          <button class="tab-btn active" data-filter="all"       onclick="Dashboard.setFilter('all')">All</button>
+          <button class="tab-btn"        data-filter="active"    onclick="Dashboard.setFilter('active')">Active</button>
+          <button class="tab-btn"        data-filter="flagged"   onclick="Dashboard.setFilter('flagged')">Flagged</button>
+          <button class="tab-btn"        data-filter="completed" onclick="Dashboard.setFilter('completed')">Completed</button>
+        </div>
+        <div class="students-grid" id="all-grid"></div>
+      </div>
+
+      <!-- ALERTS -->
+      <div id="tab-alerts" style="display:none">
+        <div class="dash-header">
+          <h2>Alert Log</h2>
+          <button class="btn btn-secondary btn-sm btn-auto" onclick="Dashboard.exportAlerts()">Export CSV</button>
+        </div>
+
+        <div class="alert-filters">
+          <div class="alert-filter-btns">
+            <button class="alert-filter-btn active all" data-level="all"      onclick="Dashboard.filterAlerts('all')">All</button>
+            <button class="alert-filter-btn" data-level="critical"            onclick="Dashboard.filterAlerts('critical')">🔴 Critical</button>
+            <button class="alert-filter-btn" data-level="warning"             onclick="Dashboard.filterAlerts('warning')">🟡 Warning</button>
+            <button class="alert-filter-btn" data-level="info"                onclick="Dashboard.filterAlerts('info')">🔵 Info</button>
+          </div>
+          <div class="alert-count-summary" id="alert-count-summary"></div>
+        </div>
+
+        <div class="alert-log" id="alert-list"></div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="tab-reports" style="display:none">
+        <div class="dash-header"><h2>Reports</h2></div>
+        <div class="reports-card">
+          <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:18px">
+            Session: Software Engineering Final Exam
+          </div>
+          <div class="report-row"><span class="report-row-icon">📄</span> Full session report (PDF)</div>
+          <div class="report-row"><span class="report-row-icon">📊</span> Cheating scores summary (CSV)</div>
+          <div class="report-row"><span class="report-row-icon">📹</span> Flagged event clips</div>
+          <div class="report-row"><span class="report-row-icon">📋</span> Event timeline (JSON)</div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="tab-settings" style="display:none">
+        <div class="dash-header"><h2>Settings</h2></div>
+        <div class="reports-card">
+          <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:18px">Proctoring Thresholds</div>
+          <div class="form-group">
+            <label class="form-label">Gaze off-screen threshold (seconds)</label>
+            <input class="form-input" type="number" value="5" min="1" max="30">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Head turn angle threshold (degrees)</label>
+            <input class="form-input" type="number" value="30" min="10" max="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cheating score flag threshold (0–100)</label>
+            <input class="form-input" type="number" value="60" min="20" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Auto-refresh interval (seconds)</label>
+            <input class="form-input" type="number" value="5" min="2" max="30">
+          </div>
+          <button class="btn btn-primary btn-auto" style="padding:10px 24px">Save Settings</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ALERTS SIDE PANEL -->
+  <div class="alerts-panel" id="alerts-panel">
+    <div class="alerts-panel-header">
+      <h3>Recent Alerts</h3>
+      <button class="close-panel-btn" id="close-alerts-panel">×</button>
+    </div>
+    <div class="alerts-panel-body" id="alerts-panel-body">
+      <div class="empty-state">
+        <div class="empty-state-icon">🔔</div>
+        <p>No alerts yet.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/dashboard.js"></script>
+<script>
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to sign out?')) return;
+    try { await API.auth.logout(); } catch {}
+    window.location.href = '/';
+  });
+</script>
+</body>
+</html>

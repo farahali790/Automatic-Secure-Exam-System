@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — Face Enrollment</title>
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="stylesheet" href="../static/css/auth.css">
+</head>
+<body>
+
+<div class="split-page page-enter">
+
+  <div class="split-left">
+    <a href="/" class="brand on-dark">
+      <div class="brand-mark">🔒</div>
+      <div class="brand-name">Secure<b>Exam</b></div>
+    </a>
+
+    <div class="left-body">
+      <div>
+        <div class="eyebrow" style="color:rgba(255,255,255,.3);margin-bottom:6px">Step 2 of 4</div>
+        <div class="left-heading">Face<br><span>enrollment.</span></div>
+        <p class="left-desc" style="margin-top:10px">
+          We capture 3 reference photos to build your biometric profile.
+          These are used for continuous identity verification throughout your exam.
+        </p>
+      </div>
+
+      <div class="steps">
+        <div class="step-row">
+          <div class="step-track"><div class="step-dot done">✓</div><div class="step-conn done"></div></div>
+          <div class="step-content"><div class="step-label done">Signed in</div></div>
+        </div>
+        <div class="step-row">
+          <div class="step-track"><div class="step-dot active">2</div><div class="step-conn"></div></div>
+          <div class="step-content">
+            <div class="step-label active">Face enrollment</div>
+            <div class="step-sublabel">3-photo biometric capture</div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-track"><div class="step-dot">3</div><div class="step-conn"></div></div>
+          <div class="step-content"><div class="step-label">Waiting room</div></div>
+        </div>
+        <div class="step-row">
+          <div class="step-track"><div class="step-dot"></div></div>
+          <div class="step-content"><div class="step-label">Live exam</div></div>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom:0">
+        <span class="alert-icon">💡</span>
+        <div>Sit in a well-lit area, look directly at the camera, and keep your face inside the oval guide.</div>
+      </div>
+    </div>
+
+    <div class="split-left-glow"></div>
+  </div>
+
+  <div class="split-right">
+    <div class="auth-card" style="max-width:480px;width:100%">
+
+      <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+
+      <div class="step-indicator" style="margin-bottom:24px">
+        <div class="step-h active" id="sh-register">
+          <div class="step-h-num">1</div>
+          <div class="step-h-label">Details</div>
+        </div>
+        <div class="step-h" id="sh-photo">
+          <div class="step-h-num">2</div>
+          <div class="step-h-label">Photo</div>
+        </div>
+        <div class="step-h" id="sh-done">
+          <div class="step-h-num">3</div>
+          <div class="step-h-label">Confirm</div>
+        </div>
+      </div>
+
+      <!-- PANEL A: Details -->
+      <div id="panel-register">
+        <div class="auth-card-eyebrow">Biometric Setup</div>
+        <div class="auth-card-title">Your Details</div>
+        <div class="auth-card-sub">Confirm your information before capturing photos</div>
+
+        <form id="register-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="full_name">Full Name</label>
+              <input class="form-input" id="full_name" type="text"
+                     placeholder="Your full name" required autocomplete="name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="student_id_enroll">Student ID</label>
+              <input class="form-input" id="student_id_enroll" type="text"
+                     placeholder="BUE-2021-0042" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input class="form-input" id="email" type="email"
+                   placeholder="name@bue.edu.eg" required autocomplete="email">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="new_password">Password</label>
+              <input class="form-input" id="new_password" type="password"
+                     placeholder="Create password" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirm_password">Confirm</label>
+              <input class="form-input" id="confirm_password" type="password"
+                     placeholder="Repeat password" required>
+            </div>
+          </div>
+
+          <label class="checkbox-row" style="margin-bottom:18px">
+            <input type="checkbox" id="agree_terms" required>
+            I agree to the exam monitoring terms and conditions
+          </label>
+
+          <button class="btn btn-primary" type="submit">Next: Capture Photos →</button>
+        </form>
+
+        <div class="auth-link-row" style="margin-top:14px">
+          Already enrolled? <a href="/student_login">Sign in here</a>
+        </div>
+      </div>
+
+      <!-- PANEL B: Camera -->
+      <div id="panel-camera" style="display:none">
+        <div class="auth-card-eyebrow">Biometric Capture</div>
+        <div class="auth-card-title">Enroll Your Face</div>
+        <div class="auth-card-sub">Align your face inside the oval and capture 3 photos</div>
+
+        <div class="cam-box">
+          <video id="enroll-video" autoplay playsinline muted></video>
+          <div class="cam-overlay">
+            <div class="face-oval"></div>
+            <div class="cam-hint" id="enroll-hint">📷 Click "Start Camera" below</div>
+          </div>
+          <div class="scan-line" id="enroll-scan" style="display:none"></div>
+        </div>
+
+        <div class="cam-meters">
+          <div class="meter ok"   id="m-light"><div class="m-dot"></div>Lighting</div>
+          <div class="meter ok"   id="m-face" ><div class="m-dot"></div>Face</div>
+          <div class="meter warn" id="m-pos"  ><div class="m-dot"></div>Position</div>
+        </div>
+
+        <div class="thumb-strip">
+          <div class="thumb" id="t0">📷</div>
+          <div class="thumb" id="t1">📷</div>
+          <div class="thumb" id="t2">📷</div>
+        </div>
+
+        <div id="enroll-action">
+          <button class="btn btn-primary" onclick="Enroll.startCamera()">Start Camera</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="../static/js/api.js"></script>
+<script src="../static/js/enrollment.js"></script>
+<script>
+  const storedId = sessionStorage.getItem('student_id');
+  if (storedId) document.getElementById('student_id_enroll').value = storedId;
+
+  function showPanel(id) {
+    document.getElementById('panel-register').style.display = id === 'register' ? 'block' : 'none';
+    document.getElementById('panel-camera').style.display   = id === 'camera'   ? 'block' : 'none';
+  }
+
+  function setStep(step) {
+    ['sh-register','sh-photo','sh-done'].forEach((id, idx) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (idx + 1 < step)  el.classList.add('done');
+      if (idx + 1 === step) el.classList.add('active');
+    });
+  }
+
+  document.getElementById('register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const pass    = document.getElementById('new_password').value;
+    const confirm = document.getElementById('confirm_password').value;
+    if (pass !== confirm) { Toast.show('error', 'Passwords do not match.'); return; }
+
+    sessionStorage.setItem('student_id',    document.getElementById('student_id_enroll').value);
+    sessionStorage.setItem('student_name',  document.getElementById('full_name').value);
+    sessionStorage.setItem('student_email', document.getElementById('email').value);
+
+    showPanel('camera');
+    setStep(2);
+  });
+</script>
+</body>
+</html>

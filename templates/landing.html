@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — AI Proctoring System</title>
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="stylesheet" href="../static/css/auth.css">
+</head>
+<body>
+
+<div class="landing-page page-enter">
+  <div class="landing-orb"></div>
+  <div class="landing-content">
+    <div class="landing-brand">
+      <div class="landing-icon">🔒</div>
+      <div class="landing-title">Secure<b>Exam</b></div>
+      <div class="landing-tagline">AI-Powered Exam Proctoring System</div>
+    </div>
+    <div class="role-cards">
+      <a href="/student" class="role-card">
+        <div class="role-icon student">🎓</div>
+        <div class="role-title">Student</div>
+        <div class="role-desc">Access your proctored exam session</div>
+      </a>
+      <a href="/invigilator_login" class="role-card">
+        <div class="role-icon invig">👁</div>
+        <div class="role-title">Invigilator</div>
+        <div class="role-desc">Monitor live sessions &amp; manage alerts</div>
+      </a>
+    </div>
+  </div>
+  <div class="landing-footer">
+    British University in Egypt · Faculty of Informatics &amp; Computer Science
+  </div>
+</div>
+
+<section style="background:var(--bg-page);padding:72px 20px">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:48px">
+      <div class="eyebrow eyebrow-accent" style="margin-bottom:10px">What we detect</div>
+      <h2 style="color:var(--t1);margin-bottom:10px">Advanced Proctoring Features</h2>
+      <p style="color:var(--t3);font-size:15px;max-width:480px;margin:0 auto">
+        Secure and fair examinations powered by computer vision and AI
+      </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">👤</div>
+        <h4 style="margin-bottom:6px">Face Recognition</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">Continuous identity verification using the <code style="font-family:var(--f-mono);font-size:11px;color:var(--accent)">face_recognition</code> library</p>
+      </div>
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">👁</div>
+        <h4 style="margin-bottom:6px">Gaze Detection</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">MediaPipe FaceMesh tracks 468 landmarks for gaze direction and head pose</p>
+      </div>
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">🔍</div>
+        <h4 style="margin-bottom:6px">Object Detection</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">YOLOv8n detects phones, books, and extra people in the camera frame</p>
+      </div>
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">⚡</div>
+        <h4 style="margin-bottom:6px">Real-Time Alerts</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">Instant notifications sent to invigilators when suspicious activity is detected</p>
+      </div>
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">📊</div>
+        <h4 style="margin-bottom:6px">Risk Scoring</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">Rule-based decision engine combines all signals into a live cheating score</p>
+      </div>
+      <div class="card card-sm" style="text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">🔒</div>
+        <h4 style="margin-bottom:6px">Standard Hardware</h4>
+        <p style="font-size:13px;color:var(--t3);margin:0">Runs on any laptop with a webcam — no specialized equipment required</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

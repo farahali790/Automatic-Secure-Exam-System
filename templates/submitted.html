@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — Submitted</title>
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="stylesheet" href="../static/css/exam.css">
+</head>
+<body>
+
+<div class="submitted-page">
+  <div class="submitted-card page-enter">
+
+    <div class="submitted-icon">✓</div>
+
+    <h2 style="margin-bottom:8px">Exam Submitted</h2>
+    <p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:0">
+      Your answers have been recorded and the proctoring session has ended.
+      Your report will be reviewed by the invigilator.
+    </p>
+
+    <div class="submitted-meta">
+      <div class="meta-row">
+        <span class="meta-key">Student ID</span>
+        <span class="meta-val" id="r-sid">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Exam</span>
+        <span class="meta-val" id="r-exam">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Answered</span>
+        <span class="meta-val" id="r-ans">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Flagged</span>
+        <span class="meta-val" id="r-flagged">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Proctoring status</span>
+        <span class="badge badge-green">✓ Session recorded</span>
+      </div>
+    </div>
+
+    <a href="/" class="btn btn-secondary btn-full">← Back to Home</a>
+  </div>
+</div>
+
+<script>
+  const p = new URLSearchParams(window.location.search);
+  document.getElementById('r-sid').textContent     = sessionStorage.getItem('student_id') || '—';
+  document.getElementById('r-exam').textContent    = (sessionStorage.getItem('exam_name') || '—').split(' — ')[1] || '—';
+  document.getElementById('r-ans').textContent     = (p.get('answered') || '0') + ' / ' + (p.get('total') || '20');
+  document.getElementById('r-flagged').textContent = p.get('flagged') || '0';
+</script>
+</body>
+</html>

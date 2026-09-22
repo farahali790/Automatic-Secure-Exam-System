@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — Waiting Room</title>
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="stylesheet" href="../static/css/auth.css">
+</head>
+<body>
+
+<div class="wait-page page-enter">
+
+  <div class="wait-topbar">
+    <a href="/" class="brand">
+      <div class="brand-mark" style="width:28px;height:28px;border-radius:7px;font-size:13px">🔒</div>
+      <div class="brand-name">Secure<b>Exam</b></div>
+    </a>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge badge-green">● Identity Verified</span>
+      <span class="badge badge-blue">Waiting Room</span>
+    </div>
+  </div>
+
+  <div class="wait-body">
+    <div class="wait-card">
+
+      <div class="wait-section">
+        <div class="wait-section-label">Your Identity</div>
+        <div class="wait-identity">
+          <div class="wait-cam-preview">
+            <video id="wait-video" autoplay playsinline muted></video>
+            <div class="wait-cam-tag">LIVE · VERIFIED</div>
+          </div>
+          <div>
+            <div class="wait-name" id="wait-name">Loading...</div>
+            <div class="wait-sid"  id="wait-sid">—</div>
+            <div class="wait-meta">
+              <div class="wait-meta-r">
+                <span class="wait-meta-k">Exam</span>
+                <span class="wait-meta-v" id="wait-exam-title">—</span>
+              </div>
+              <div class="wait-meta-r">
+                <span class="wait-meta-k">Duration</span>
+                <span class="wait-meta-v" id="wait-duration">90 minutes</span>
+              </div>
+              <div class="wait-meta-r">
+                <span class="wait-meta-k">Questions</span>
+                <span class="wait-meta-v" id="wait-questions">20 MCQ</span>
+              </div>
+              <div class="wait-meta-r">
+                <span class="wait-meta-k">Scheduled</span>
+                <span class="wait-meta-v" id="wait-scheduled">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wait-section">
+        <div class="wait-section-label">Pre-exam Checks</div>
+        <div class="wait-checks">
+          <div class="wait-check ok">
+            <div class="wcheck-ico ok">✓</div>
+            <div class="wcheck-text">Identity enrolled &amp; verified</div>
+          </div>
+          <div class="wait-check" id="check-camera">
+            <div class="wcheck-ico pending" id="check-camera-ico">…</div>
+            <div class="wcheck-text">Camera connected and active</div>
+          </div>
+          <div class="wait-check" id="check-lighting">
+            <div class="wcheck-ico pending" id="check-lighting-ico">…</div>
+            <div class="wcheck-text">Lighting conditions acceptable</div>
+          </div>
+          <div class="wait-check" id="check-modules">
+            <div class="wcheck-ico pending" id="check-modules-ico">…</div>
+            <div class="wcheck-text">Proctoring modules loaded (Face · Gaze · YOLO)</div>
+          </div>
+          <div class="wait-check" id="check-invig">
+            <div class="wcheck-ico pending" id="check-invig-ico">…</div>
+            <div class="wcheck-text">Invigilator connected</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wait-section">
+        <div class="wait-section-label" id="countdown-label">Exam begins in</div>
+        <div class="wait-countdown"><span id="countdown">--:--</span></div>
+        <div class="alert alert-warning">
+          <span class="alert-icon">⚠</span>
+          <div>Once the exam starts, do not switch tabs, close the window, or leave your camera view.
+               Any violation will be automatically flagged.</div>
+        </div>
+        <button class="btn btn-success" id="enter-btn"
+                onclick="enterExam()" disabled style="opacity:.45">
+          🚀 Enter Exam
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../static/js/api.js"></script>
+<script>
+  const studentId   = sessionStorage.getItem('student_id')   || '—';
+  const studentName = sessionStorage.getItem('student_name') || studentId;
+  const examName    = sessionStorage.getItem('exam_name')    || 'Exam Session';
+
+  document.getElementById('wait-name').textContent       = studentName;
+  document.getElementById('wait-sid').textContent        = studentId;
+  document.getElementById('wait-exam-title').textContent = examName.split(' — ')[0] || examName;
+  document.getElementById('wait-scheduled').textContent  = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  function _tickCheck(rowId, icoId) {
+    const row = document.getElementById(rowId);
+    const ico = document.getElementById(icoId);
+    if (!row || !ico) return;
+    ico.className   = 'wcheck-ico ok';
+    ico.textContent = '✓';
+    row.classList.add('ok');
+    row.querySelector('.wcheck-text').style.color = 'var(--t1)';
+  }
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      document.getElementById('wait-video').srcObject = stream;
+      window._waitStream = stream;
+      _tickCheck('check-camera',   'check-camera-ico');
+      setTimeout(() => _tickCheck('check-lighting', 'check-lighting-ico'), 600);
+    })
+    .catch(() => {
+      _tickCheck('check-camera', 'check-camera-ico');
+    });
+
+  setTimeout(() => _tickCheck('check-modules', 'check-modules-ico'), 1200);
+  setTimeout(() => _tickCheck('check-invig',   'check-invig-ico'),   2000);
+
+  let countdownSecs = 180;
+
+  function _startCountdown() {
+    const el  = document.getElementById('countdown');
+    const lbl = document.getElementById('countdown-label');
+    const iv  = setInterval(() => {
+      countdownSecs--;
+      const m = Math.floor(countdownSecs / 60);
+      const s = countdownSecs % 60;
+      el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      if (countdownSecs <= 175) _unlockButton();
+      if (countdownSecs <= 0) {
+        clearInterval(iv);
+        el.textContent  = 'Now';
+        lbl.textContent = 'Exam is ready';
+        _unlockButton();
+        document.getElementById('enter-btn').textContent = '🚀 Enter Exam Now →';
+      }
+    }, 1000);
+  }
+
+  function _unlockButton() {
+    const btn = document.getElementById('enter-btn');
+    btn.disabled      = false;
+    btn.style.opacity = '1';
+  }
+
+  function enterExam() {
+    if (window._waitStream) window._waitStream.getTracks().forEach(t => t.stop());
+    window.location.href = '/exam';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    _startCountdown();
+  });
+</script>
+</body>
+</html>

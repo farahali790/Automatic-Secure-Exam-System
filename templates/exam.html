@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureExam — Live Exam</title>
+  <link rel="stylesheet" href="../static/css/main.css">
+  <link rel="stylesheet" href="../static/css/exam.css">
+</head>
+<body>
+
+<div class="exam-page page-enter">
+
+  <div class="exam-topbar">
+    <div class="exam-topbar-left">
+      <div class="exam-bar-brand">Secure<b>Exam</b></div>
+      <div class="topbar-divider"></div>
+      <div class="exam-name" id="exam-bar-title">Software Engineering — Final Exam</div>
+    </div>
+    <div class="exam-topbar-right">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulseAnim 2s ease-in-out infinite"></div>
+        Proctoring Active
+      </div>
+      <span class="badge badge-live">● PROCTORED</span>
+      <div class="exam-timer" id="timer-pill">
+        <div class="timer-dot"></div>
+        <span id="exam-timer">90:00</span>
+      </div>
+      <div class="exam-cam-pill">
+        <video id="exam-video" autoplay playsinline muted></video>
+        <div class="cam-live-tag">CAM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exam-layout">
+
+    <div class="exam-sidebar">
+      <div>
+        <div class="sidebar-label">Questions</div>
+        <div class="q-grid" id="q-grid"></div>
+      </div>
+      <div class="sep"></div>
+      <div>
+        <div class="sidebar-label">Legend</div>
+        <div class="legend">
+          <div class="leg-row"><div class="leg-swatch" style="background:var(--accent)"></div>Current</div>
+          <div class="leg-row"><div class="leg-swatch" style="background:var(--green-soft);border:1px solid var(--green-b)"></div>Answered</div>
+          <div class="leg-row"><div class="leg-swatch" style="background:var(--amber-soft);border:1px solid var(--amber-b)"></div>Flagged</div>
+          <div class="leg-row"><div class="leg-swatch" style="background:var(--bg-subtle);border:1px solid var(--border)"></div>Unanswered</div>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="answered-stat">
+        Answered: <strong id="ans-count">0</strong> / <strong id="total-count">20</strong>
+      </div>
+      <div class="answered-stat" style="margin-top:4px">
+        Flagged: <strong id="flagged-count">0</strong>
+      </div>
+      <button class="btn btn-secondary btn-sm btn-full" style="margin-top:10px"
+              onclick="openInstructions()">📋 Instructions</button>
+      <button class="btn btn-danger btn-sm btn-full" style="margin-top:auto"
+              onclick="Exam.submitExam(false)">Submit Exam</button>
+    </div>
+
+    <div class="exam-main">
+      <div class="question-card">
+        <div class="question-meta">
+          <div class="question-num-label">
+            Question <span id="q-num">1</span> of <span id="q-total">20</span>
+          </div>
+          <div class="question-badges" id="q-meta-badges"></div>
+          <button class="flag-btn" onclick="Exam.flagQuestion()">⚑ Flag</button>
+        </div>
+        <div class="question-text" id="q-body">Loading question...</div>
+        <div class="options-list" id="q-opts"></div>
+      </div>
+
+      <div class="exam-nav">
+        <button class="btn btn-secondary btn-auto" id="prev-btn" onclick="Exam.prevQ()">← Prev</button>
+        <button class="btn btn-primary  btn-auto" id="next-btn" onclick="Exam.nextQ()">Next →</button>
+      </div>
+
+      <div class="exam-status-strip">
+        <div class="status-dot"></div>
+        Gaze, head pose, and object detection are active. Do not look away from the screen.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Instructions Modal -->
+<div id="instructions-modal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-icon warn">📋</div>
+    <h3>Exam Instructions</h3>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;text-align:left;margin-bottom:0">
+      <ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px">
+        <li>Do <strong>not</strong> use mobile phones, books, or additional devices</li>
+        <li>Maintain eye contact with the screen at all times</li>
+        <li>Do not talk, whisper, or communicate with others</li>
+        <li>Ensure adequate lighting on your face throughout</li>
+        <li>Do not switch tabs or minimize the browser window</li>
+        <li>Only one person should be visible in the camera frame</li>
+      </ul>
+    </div>
+    <div class="modal-actions" style="margin-top:22px">
+      <button class="btn btn-primary" onclick="closeInstructions()">Got it →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../static/js/api.js"></script>
+<script>
+  const _examName = sessionStorage.getItem('exam_name');
+  if (_examName) document.getElementById('exam-bar-title').textContent = _examName;
+
+  function openInstructions() {
+    document.getElementById('instructions-modal').style.display = 'flex';
+  }
+  function closeInstructions() {
+    document.getElementById('instructions-modal').style.display = 'none';
+  }
+  document.getElementById('instructions-modal').addEventListener('click', e => {
+    if (e.target.id === 'instructions-modal') closeInstructions();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.getElementById('q-grid');
+    if (grid) {
+      new MutationObserver(() => {
+        const el = document.getElementById('flagged-count');
+        if (el) el.textContent = document.querySelectorAll('.q-btn.flagged').length;
+      }).observe(grid, { subtree: true, attributes: true });
+    }
+  });
+</script>
+<script src="../static/js/exam.js"></script>
+</body>
+</html>

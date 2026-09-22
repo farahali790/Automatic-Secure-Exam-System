@@ -1,0 +1,19 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="#2563eb" opacity="0.1"/>
+  
+  <!-- Shield outline -->
+  <path d="M 50 15 L 75 30 L 75 50 Q 75 70 50 82 Q 25 70 25 50 L 25 30 Z" 
+        fill="none" stroke="#2563eb" stroke-width="2"/>
+  
+  <!-- Eye symbol -->
+  <circle cx="50" cy="48" r="8" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="50" cy="48" r="3" fill="#2563eb"/>
+  
+  <!-- Check mark -->
+  <path d="M 40 55 L 45 60 L 55 50" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Text -->
+  <text x="50" y="90" font-family="Arial, sans-serif" font-size="8" font-weight="bold" 
+        text-anchor="middle" fill="#2563eb">SecureExam</text>
+</svg>
